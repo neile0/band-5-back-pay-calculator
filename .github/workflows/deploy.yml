@@ -1,0 +1,71 @@
+name: Build and deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  GCP_PROJECT: salahbarber
+  GCP_REGION: europe-west1
+  SERVICE_NAME: back-pay-calc
+  REPO_NAME: back-pay-calc
+  WIF_PROVIDER: projects/1046391559558/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
+  SERVICE_ACCOUNT: github-actions@salahbarber.iam.gserviceaccount.com
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE="${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image "${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" \
+            --region ${{ env.GCP_REGION }} \
+            --project ${{ env.GCP_PROJECT }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 8080 \
+            --min-instances 0 \
+            --max-instances 2 \
+            --cpu 1 \
+            --memory 256Mi \
+            --concurrency 80 \
+            --timeout 60 \
+            --cpu-throttling \
+            --no-cpu-boost \
+            --execution-environment gen1
+
+      - name: Clean up old Artifact Registry images
+        run: |
+          gcloud artifacts docker images list \
+            ${{ env.GCP_REGION }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }} \
+            --sort-by=CREATE_TIME \
+            --format="get(package)" \
+            --limit=999 | head -n -3 | while read -r IMAGE; do
+              gcloud artifacts docker images delete "$IMAGE" --quiet --delete-tags 2>/dev/null || true
+            done
