@@ -6,12 +6,12 @@ on:
       - main
 
 env:
-  GCP_PROJECT: salahbarber
+  GCP_PROJECT: back-pay-calc
   GCP_REGION: europe-west1
   SERVICE_NAME: back-pay-calc
   REPO_NAME: back-pay-calc
-  WIF_PROVIDER: projects/1046391559558/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
-  SERVICE_ACCOUNT: github-actions@salahbarber.iam.gserviceaccount.com
+  WIF_PROVIDER: projects/196799348587/locations/global/workloadIdentityPools/github-actions/providers/github-oidc
+  SERVICE_ACCOUNT: github-actions@back-pay-calc.iam.gserviceaccount.com
 
 permissions:
   contents: read
