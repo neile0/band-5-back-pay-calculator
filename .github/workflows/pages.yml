@@ -26,7 +26,7 @@ jobs:
           channel: stable
 
       - name: Build Flutter web
-        run: flutter build web --base-href /band-5-back-pay-calculator/ --web-renderer html
+        run: flutter build web --base-href /band-5-back-pay-calculator/
 
       - uses: actions/configure-pages@v5
 
