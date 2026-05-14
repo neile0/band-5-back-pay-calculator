@@ -48,7 +48,7 @@ jobs:
             --region ${{ env.GCP_REGION }} \
             --project ${{ env.GCP_PROJECT }} \
             --platform managed \
-            --allow-unauthenticated \
+            --ingress internal-and-cloud-load-balancing \
             --port 8080 \
             --min-instances 0 \
             --max-instances 2 \
