@@ -431,25 +431,112 @@ class _CalculatorPageState extends State<CalculatorPage>
   Widget _employmentContent() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // FROM → TO progression card
           Container(
             width: double.infinity,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
-              color: _mintBadge,
-              borderRadius: BorderRadius.circular(8),
+              color: const Color(0xFFF0F8F7),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _borderColor, width: 1),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.work_outline, color: _teal, size: 18),
-                SizedBox(width: 8),
+                // FROM
                 Expanded(
-                  child: Text(
-                    'NHS Band 5 → Band 6 (Specialist Nurse)',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: _teal,
-                        fontSize: 13),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'FROM',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: _textSecondary,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Nurse',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF2C3A47),
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDDECE9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Band 5',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: _textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Arrow
+                Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: const BoxDecoration(
+                    color: _teal,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.arrow_forward,
+                      color: Colors.white, size: 14),
+                ),
+                // TO
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Text(
+                        'TO',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: _teal,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Specialist Nurse',
+                        textAlign: TextAlign.end,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: _teal,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _mintBadge,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          'Band 6',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: _teal,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
