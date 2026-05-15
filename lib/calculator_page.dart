@@ -166,9 +166,19 @@ class _CalculatorPageState extends State<CalculatorPage> {
       appBar: AppBar(
         backgroundColor: _teal,
         foregroundColor: Colors.white,
-        title: const Text(
-          'NHS Scotland Band 5 AfC Back Pay Calculator',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.local_hospital_outlined, size: 20),
+            SizedBox(width: 8),
+            Text(
+              'AfC Back Pay',
+              style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.3),
+            ),
+          ],
         ),
         elevation: 0,
       ),
@@ -255,8 +265,8 @@ class _CalculatorPageState extends State<CalculatorPage> {
             const SizedBox(height: 8),
             Text(
               _mode == CalcMode.payScale
-                  ? 'Uses published NHS Scotland pay tables. Back pay = Band 6 salary − Band 5 salary for each year.'
-                  : 'Uses your actual gross earnings from HMRC vs Band 6 expected pay. More accurate if you received overtime pay or shift enhancements.',
+                  ? 'Uses published NHS Scotland pay tables. Back pay = Band 6 expected rate − Band 5 paid rate, for each year.'
+                  : 'Uses your actual gross earnings from HMRC compared to the expected Band 6 rate. More accurate if you received overtime or shift enhancements.',
               style: TextStyle(fontSize: 13, color: _textSecondary),
             ),
           ],
@@ -587,18 +597,35 @@ class _CalculatorPageState extends State<CalculatorPage> {
     if (_result == null) {
       return _card(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24),
+          padding: const EdgeInsets.symmetric(vertical: 28),
           child: Column(
             children: [
-              const Icon(Icons.calculate_outlined,
-                  size: 40, color: _mintBadge),
-              const SizedBox(height: 12),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: const BoxDecoration(
+                  color: _mintBadge,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.savings_outlined,
+                    size: 30, color: _teal),
+              ),
+              const SizedBox(height: 16),
               Text(
                 _mode == CalcMode.hmrc
-                    ? 'Enter your HMRC earnings above to see your estimate.'
-                    : 'Fill in your details above to see your estimate.',
+                    ? 'Enter your HMRC earnings above'
+                    : 'Fill in your details above',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: _teal),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Your back pay estimate will appear here',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: _textSecondary),
               ),
             ],
           ),
@@ -606,38 +633,66 @@ class _CalculatorPageState extends State<CalculatorPage> {
       );
     }
 
-    return Column(
-      children: [
-        Text(
-          'Your estimate is ready',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: _teal),
-        ),
-        const SizedBox(height: 12),
-        _RevealButton(onPressed: _reveal),
-      ],
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: _mintBadge,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check_circle_outline,
+                    color: _teal, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Your estimate is ready',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: _teal),
+                    ),
+                    Text(
+                      'Tap below to see your figures',
+                      style: TextStyle(fontSize: 12, color: _textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _RevealButton(onPressed: _reveal),
+        ],
+      ),
     );
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   Widget _infoTip(String text) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: _mintBadge,
-          borderRadius: BorderRadius.circular(6),
+        padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
+        decoration: const BoxDecoration(
+          border: Border(left: BorderSide(color: _teal, width: 3)),
+          color: Color(0xFFD9F0ED),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.info_outline, size: 15, color: _teal),
+            const Icon(Icons.info_outline, size: 14, color: _teal),
             const SizedBox(width: 8),
             Expanded(
               child: Text(text,
-                  style: const TextStyle(fontSize: 12, color: _teal)),
+                  style: const TextStyle(
+                      fontSize: 12, color: _teal, height: 1.4)),
             ),
           ],
         ),
@@ -800,6 +855,7 @@ class _ResultScreenState extends State<_ResultScreen>
                               fontWeight: FontWeight.w800,
                               letterSpacing: -1.5,
                               height: 1.1,
+                              fontFeatures: [FontFeature.tabularFigures()],
                             ),
                           ),
                         ],
@@ -824,6 +880,7 @@ class _ResultScreenState extends State<_ResultScreen>
                                 fontSize: 22,
                                 fontWeight: FontWeight.w600,
                                 letterSpacing: -0.5,
+                                fontFeatures: [FontFeature.tabularFigures()],
                               ),
                             ),
                           ],
@@ -894,8 +951,24 @@ class _ResultScreenState extends State<_ResultScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('How it breaks down',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+            Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: const BoxDecoration(
+                    color: _mintBadge,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.receipt_long_outlined,
+                      size: 15, color: _teal),
+                ),
+                const SizedBox(width: 10),
+                const Text('How it breaks down',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 15)),
+              ],
+            ),
             const SizedBox(height: 16),
             _row('Total gross back pay', r.totalGross),
             _row('  Income tax (est.)', -r.totalTax),
@@ -930,7 +1003,7 @@ class _ResultScreenState extends State<_ResultScreen>
                         horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: _mintBadge,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(y.year.label,
                         style: const TextStyle(
@@ -984,20 +1057,23 @@ class _ResultScreenState extends State<_ResultScreen>
       );
 
   Widget _row(String label, double value, {bool bold = false, Color? color}) {
-    final style = TextStyle(
+    final labelStyle = TextStyle(
       fontWeight: bold ? FontWeight.w700 : FontWeight.normal,
       color: color ?? Colors.black87,
       fontSize: 14,
+    );
+    final valueStyle = labelStyle.copyWith(
+      fontFeatures: const [FontFeature.tabularFigures()],
     );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: style),
+          Text(label, style: labelStyle),
           Text(
             value >= 0 ? _fmt.format(value) : '-${_fmt.format(-value)}',
-            style: style,
+            style: valueStyle,
           ),
         ],
       ),
