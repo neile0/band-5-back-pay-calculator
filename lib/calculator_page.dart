@@ -771,7 +771,7 @@ class _ResultScreenState extends State<_ResultScreen>
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'We hope you feel recognised for the work that you do. We would be a worse society without you.',
+                    'I hope this feels like the recognition your work deserves. We\'d be a worse society without you.',
                     style: TextStyle(
                         color: Colors.white70, fontSize: 14, height: 1.5),
                   ),
