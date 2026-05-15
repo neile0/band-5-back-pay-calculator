@@ -32,7 +32,7 @@ class BackPayApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'NHS Scotland Band 5 Back Pay Calculator',
+      title: 'Band 5 Review Calculator',
       debugShowCheckedModeBanner: false,
       theme: base.copyWith(
         textTheme: GoogleFonts.outfitTextTheme(base.textTheme).apply(

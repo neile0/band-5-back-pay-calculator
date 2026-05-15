@@ -1,11 +1,11 @@
 {
-    "name": "NHS Band 5 Back Pay Calculator",
-    "short_name": "Back Pay Calc",
+    "name": "Band 5 Review Calculator",
+    "short_name": "Band 5 Review",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#005C69",
     "theme_color": "#005C69",
-    "description": "Estimate your NHS Scotland Band 5 AfC back pay under PCS(AFC)2024/3.",
+    "description": "Free Band 5 Review Calculator for NHS Scotland nurses. Estimate your AfC back pay from Band 5 to Band 6.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

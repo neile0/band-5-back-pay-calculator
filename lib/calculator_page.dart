@@ -257,7 +257,7 @@ class _CalculatorPageState extends State<CalculatorPage>
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    'Back Pay\nCalculator',
+                    'Band 5 Review\nCalculator',
                     style: GoogleFonts.outfit(
                       color: Colors.white,
                       fontSize: 36,
@@ -268,7 +268,7 @@ class _CalculatorPageState extends State<CalculatorPage>
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Band 5 → Band 6  ·  Find out what you\'re owed.',
+                    'Band 5 → Band 6  ·  Find out what back pay you\'re owed.',
                     style: GoogleFonts.outfit(
                       color: Colors.white.withValues(alpha: 0.58),
                       fontSize: 13,
@@ -1039,7 +1039,7 @@ class _ResultScreenState extends State<_ResultScreen>
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
-                  title: const Text('Your Back Pay Estimate',
+                  title: const Text('Your Band 5 Review Estimate',
                       style: TextStyle(
                           fontSize: 16, fontWeight: FontWeight.w500)),
                 ),
