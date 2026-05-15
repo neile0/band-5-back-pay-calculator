@@ -4,56 +4,66 @@
       <stop offset="0%" stop-color="#006B7C"/>
       <stop offset="100%" stop-color="#004855"/>
     </linearGradient>
-    <linearGradient id="gold" x1="15%" y1="5%" x2="85%" y2="95%">
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#FFD760"/>
       <stop offset="100%" stop-color="#E8A800"/>
-    </linearGradient>
-    <linearGradient id="face" x1="20%" y1="10%" x2="80%" y2="90%">
-      <stop offset="0%" stop-color="#FFFEF5"/>
-      <stop offset="100%" stop-color="#FFF8DC"/>
     </linearGradient>
   </defs>
 
   <!-- Background -->
   <rect width="100" height="100" rx="22" fill="url(#bg)"/>
 
-  <!-- Tunic body — white, V-neck cut lets teal show through -->
-  <path d="M 0 24 Q 24 24 50 46 Q 76 24 100 24 L 100 100 L 0 100 Z"
-        fill="white" opacity="0.94"/>
+  <!-- ── WINGS ─────────────────────────────────────────── -->
+  <!-- Left upper feather: sweeps from staff tip out to far-left, curves back -->
+  <path d="M 48,23 C 42,17 26,10 11,13 C 6,19 7,28 13,31
+           C 22,27 36,24 47,28 Z"
+        fill="white" opacity="0.96"/>
+  <!-- Left lower feather: shorter, angled down further -->
+  <path d="M 47,28 C 37,22 18,25 11,36
+           C 20,32 34,30 47,34 Z"
+        fill="white" opacity="0.80"/>
 
-  <!-- Fob watch bow — the loop that clips to the tunic breast -->
-  <ellipse cx="50" cy="48.5" rx="5.5" ry="3"
-           fill="none" stroke="url(#gold)" stroke-width="3"
-           stroke-linecap="round"/>
+  <!-- Right upper feather (mirror) -->
+  <path d="M 52,23 C 58,17 74,10 89,13 C 94,19 93,28 87,31
+           C 78,27 64,24 53,28 Z"
+        fill="white" opacity="0.96"/>
+  <!-- Right lower feather (mirror) -->
+  <path d="M 53,28 C 63,22 82,25 89,36
+           C 80,32 66,30 53,34 Z"
+        fill="white" opacity="0.80"/>
 
-  <!-- Short stem: bow to watch case -->
-  <line x1="50" y1="51.5" x2="50" y2="54"
-        stroke="url(#gold)" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- ── GOLD ORB + STAFF ───────────────────────────────── -->
+  <circle cx="50" cy="19" r="6.5" fill="url(#gold)"/>
+  <circle cx="50" cy="19" r="6.5" fill="none" stroke="#C88A00" stroke-width="1"/>
+  <line x1="50" y1="25" x2="50" y2="89"
+        stroke="url(#gold)" stroke-width="3.5"/>
 
-  <!-- Watch case (outer) -->
-  <circle cx="50" cy="70" r="16.5" fill="url(#gold)"/>
+  <!-- ── SNAKES ─────────────────────────────────────────── -->
+  <!-- Left snake: starts left of staff, crosses right at ~y=50, back left at ~y=67, tail to centre -->
+  <path d="M 40,33 C 24,44 68,54 38,66 C 24,73 46,82 50,89"
+        fill="none" stroke="white" stroke-width="5.5"
+        stroke-linecap="round" opacity="0.92"/>
+  <!-- Right snake: starts right, opposite phase -->
+  <path d="M 60,33 C 76,44 32,54 62,66 C 76,73 54,82 50,89"
+        fill="none" stroke="white" stroke-width="5.5"
+        stroke-linecap="round" opacity="0.92"/>
 
-  <!-- Case rim -->
-  <circle cx="50" cy="70" r="16.5"
-          fill="none" stroke="#C88A00" stroke-width="1.5"/>
+  <!-- Snake heads — oval bodies facing inward, eye dots -->
+  <ellipse cx="40" cy="31.5" rx="5.5" ry="4"
+           fill="white" opacity="0.96" transform="rotate(15,40,31.5)"/>
+  <circle cx="42" cy="30.5" r="1.3" fill="#004855"/>
 
-  <!-- Watch face -->
-  <circle cx="50" cy="70" r="11.5" fill="url(#face)"/>
+  <ellipse cx="60" cy="31.5" rx="5.5" ry="4"
+           fill="white" opacity="0.96" transform="rotate(-15,60,31.5)"/>
+  <circle cx="58" cy="30.5" r="1.3" fill="#004855"/>
 
-  <!-- Hour and minute markers at 12, 3, 6, 9 -->
-  <line x1="50" y1="59.5" x2="50" y2="61"   stroke="#005C69" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="60.5" y1="70" x2="59" y2="70"   stroke="#005C69" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="50" y1="80.5" x2="50" y2="79"   stroke="#005C69" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="39.5" y1="70" x2="41" y2="70"   stroke="#005C69" stroke-width="1.5" stroke-linecap="round"/>
-
-  <!-- Hands at 10:10 — the "open smile" classic watch position -->
-  <!-- Hour hand → 10 o'clock -->
-  <line x1="50" y1="70" x2="44" y2="64"
-        stroke="#004855" stroke-width="2.5" stroke-linecap="round"/>
-  <!-- Minute hand → 2 o'clock (longer) -->
-  <line x1="50" y1="70" x2="57" y2="63.5"
-        stroke="#004855" stroke-width="2" stroke-linecap="round"/>
-
-  <!-- Centre pin -->
-  <circle cx="50" cy="70" r="1.8" fill="#004855"/>
+  <!-- ── £ SIGN (rendered last — on top of snakes) ───────── -->
+  <!-- Dark outline ensures legibility where £ overlaps white snake bodies -->
+  <text x="50" y="73"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="42" font-weight="bold"
+        text-anchor="middle"
+        stroke="#003D4A" stroke-width="5" stroke-linejoin="round"
+        paint-order="stroke"
+        fill="url(#gold)">£</text>
 </svg>
