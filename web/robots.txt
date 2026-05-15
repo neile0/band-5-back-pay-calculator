@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://band-5-review-calculator.scot/sitemap.xml

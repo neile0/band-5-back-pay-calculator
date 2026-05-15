@@ -1,48 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-GB">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Free Band 5 Review Calculator for NHS Scotland nurses. Estimate your AfC back pay from Band 5 to Band 6 under PCS(AFC)2024/3.">
-  <meta name="keywords" content="Band 5 review calculator, NHS Scotland back pay, AfC review, Band 5 to Band 6, NHS pay calculator">
-  <meta name="theme-color" content="#005C69">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- iOS meta tags & icons -->
+  <!-- Primary SEO -->
+  <title>Band 5 Review Calculator — NHS Scotland AfC Back Pay Estimator</title>
+  <meta name="description" content="Free Band 5 Review Calculator for NHS Scotland nurses. Estimate your AfC back pay from Nurse Band 5 to Specialist Nurse Band 6 under PCS(AFC)2024/3. Takes 60 seconds.">
+  <meta name="keywords" content="Band 5 review calculator, NHS Scotland back pay, AfC review 2024, Band 5 to Band 6, Specialist Nurse back pay, NHS pay calculator Scotland, PCS AFC 2024/3">
+  <meta name="robots" content="index, follow">
+  <meta name="author" content="Aidan Neil, Kelvin Systems">
+  <link rel="canonical" href="https://band-5-review-calculator.scot/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://band-5-review-calculator.scot/">
+  <meta property="og:title" content="Band 5 Review Calculator — NHS Scotland AfC Back Pay">
+  <meta property="og:description" content="Find out what NHS AfC back pay you're owed as a Specialist Nurse. Free calculator covering 2023/24 to 2026/27 — takes 60 seconds.">
+  <meta property="og:site_name" content="Band 5 Review Calculator">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:image" content="https://band-5-review-calculator.scot/icons/Icon-512.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Band 5 Review Calculator — NHS Scotland AfC Back Pay">
+  <meta name="twitter:description" content="Find out what NHS AfC back pay you're owed as a Specialist Nurse. Free, takes 60 seconds.">
+  <meta name="twitter:image" content="https://band-5-review-calculator.scot/icons/Icon-512.png">
+
+  <!-- JSON-LD structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Band 5 Review Calculator",
+    "alternateName": "NHS Scotland Band 5 AfC Back Pay Calculator",
+    "description": "Free calculator for NHS Scotland nurses to estimate their Band 5 to Specialist Nurse Band 6 AfC back pay under Pay Circular PCS(AFC)2024/3. Covers tax years 2023/24 through 2026/27.",
+    "url": "https://band-5-review-calculator.scot/",
+    "applicationCategory": "FinanceApplication",
+    "operatingSystem": "Web",
+    "browserRequirements": "Requires a modern browser with JavaScript enabled",
+    "inLanguage": "en-GB",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "GBP"
+    },
+    "creator": {
+      "@type": "Person",
+      "name": "Aidan Neil",
+      "url": "https://www.linkedin.com/in/aidan-neil/",
+      "worksFor": {
+        "@type": "Organization",
+        "name": "Kelvin Systems",
+        "url": "https://kelvin.systems"
+      }
+    },
+    "about": {
+      "@type": "Thing",
+      "name": "NHS Scotland Agenda for Change Band 5 Review",
+      "description": "The reclassification of NHS Scotland Band 5 nurses to Specialist Nurse Band 6 under AfC Pay Circular PCS(AFC)2024/3, including retrospective back pay from 1 April 2023."
+    }
+  }
+  </script>
+
+  <!-- Theme and icons -->
+  <meta name="theme-color" content="#005C69">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Band 5 Review Calc">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
-
-  <title>Band 5 Review Calculator — NHS Scotland AfC Back Pay</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <!-- Fallback text for crawlers and no-JS environments -->
+  <noscript>
+    <h1>Band 5 Review Calculator — NHS Scotland AfC Back Pay Estimator</h1>
+    <p>
+      This free calculator helps NHS Scotland nurses estimate their Agenda for Change (AfC)
+      back pay following the Band 5 to Specialist Nurse Band 6 reclassification under
+      Pay Circular PCS(AFC)2024/3. Back pay is calculated from 1 April 2023 to your
+      Band 6 effective date, covering tax years 2023/24 through 2026/27.
+    </p>
+    <p>
+      JavaScript is required to use this calculator.
+      Please enable JavaScript in your browser and reload the page.
+    </p>
+  </noscript>
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
