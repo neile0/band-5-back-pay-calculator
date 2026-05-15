@@ -13,29 +13,15 @@ class CalculatorPage extends StatefulWidget {
   State<CalculatorPage> createState() => _CalculatorPageState();
 }
 
-class _CalculatorPageState extends State<CalculatorPage>
-    with TickerProviderStateMixin {
-  // ── Constants ──────────────────────────────────────────────────────────────
+class _CalculatorPageState extends State<CalculatorPage> {
   static const _teal = Color(0xFF005C69);
-  static const _gold = Color(0xFFFFC837);
   static const _mintBadge = Color(0xFFCCEDE9);
 
-  // ── Controllers ────────────────────────────────────────────────────────────
   final _nameController = TextEditingController();
   final _hmrcControllers = {
     for (final y in PayYear.values) y: TextEditingController(),
   };
 
-  // ── Animation ──────────────────────────────────────────────────────────────
-  late final AnimationController _revealCtrl;
-  late final AnimationController _counterCtrl;
-  late final Animation<double> _revealFade;
-  late final Animation<Offset> _revealSlide;
-  late final Animation<double> _counterAnim;
-  bool _revealed = false;
-  double _counterTarget = 0;
-
-  // ── Form state ─────────────────────────────────────────────────────────────
   CalcMode _mode = CalcMode.payScale;
   double _yearsExperience = 0;
   double _hours = 37.5;
@@ -43,46 +29,27 @@ class _CalculatorPageState extends State<CalculatorPage>
   DateTime _backPayStart = DateTime(2025, 4, 1);
   DateTime _effectiveAfcDate = DateTime.now();
 
-  // ── Derived ────────────────────────────────────────────────────────────────
-  SpinePoint get _spine {
-    if (_yearsExperience < 2) return SpinePoint.entry;
-    if (_yearsExperience < 4) return SpinePoint.intermediate;
+  // Current spine — used for UI badge only.
+  SpinePoint get _spine => _spineAt(DateTime.now());
+
+  // Spine at a historical date, derived by rewinding current experience.
+  SpinePoint _spineAt(DateTime date) {
+    final yearsAtDate =
+        _yearsExperience - DateTime.now().difference(date).inDays / 365.25;
+    final y = yearsAtDate.clamp(0.0, double.infinity);
+    if (y < 2) return SpinePoint.entry;
+    if (y < 4) return SpinePoint.intermediate;
     return SpinePoint.top;
   }
 
-  // ── Result state ───────────────────────────────────────────────────────────
   CalcResult? _result;
   String _displayName = '';
 
-  final _fmt =
-      NumberFormat.currency(locale: 'en_GB', symbol: '£', decimalDigits: 2);
   final _dateFmt = DateFormat('d MMM yyyy');
 
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
-
-    _revealCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 700),
-    );
-    _counterCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1600),
-    );
-    _revealFade = CurvedAnimation(
-      parent: _revealCtrl,
-      curve: Curves.easeOut,
-    );
-    _revealSlide = Tween<Offset>(
-      begin: const Offset(0, 0.18),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _revealCtrl, curve: Curves.easeOutCubic));
-    _counterAnim = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _counterCtrl, curve: Curves.easeOutExpo),
-    );
-
     _nameController.addListener(_recalculate);
     for (final c in _hmrcControllers.values) {
       c.addListener(_recalculate);
@@ -92,8 +59,6 @@ class _CalculatorPageState extends State<CalculatorPage>
 
   @override
   void dispose() {
-    _revealCtrl.dispose();
-    _counterCtrl.dispose();
     _nameController.dispose();
     for (final c in _hmrcControllers.values) {
       c.dispose();
@@ -101,20 +66,30 @@ class _CalculatorPageState extends State<CalculatorPage>
     super.dispose();
   }
 
-  // ── Reveal ─────────────────────────────────────────────────────────────────
   void _reveal() {
-    final gross = _result?.totalGross ?? 0;
-    setState(() {
-      _revealed = true;
-      _counterTarget = gross;
-    });
-    _revealCtrl.forward(from: 0);
-    Future.delayed(const Duration(milliseconds: 250), () {
-      if (mounted) _counterCtrl.forward(from: 0);
-    });
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, _) => _ResultScreen(
+          result: _result!,
+          name: _displayName,
+          backPayStart: _backPayStart,
+          effectiveAfcDate: _effectiveAfcDate,
+          mode: _mode,
+          pension: _pension,
+        ),
+        transitionsBuilder: (context, animation, _, child) => SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+          child: child,
+        ),
+        transitionDuration: const Duration(milliseconds: 500),
+      ),
+    );
   }
 
-  // ── Calculation ────────────────────────────────────────────────────────────
   void _recalculate() {
     final years = <YearResult>[];
     final endDate = _effectiveAfcDate;
@@ -130,10 +105,12 @@ class _CalculatorPageState extends State<CalculatorPage>
       final periodEnd = endDate.isBefore(yearEnd) ? endDate : yearEnd;
       if (!periodEnd.isAfter(periodStart)) continue;
 
+      final spineForPeriod = _spineAt(periodStart);
+
       if (_mode == CalcMode.payScale) {
         years.add(calculateFromScales(
           year: year,
-          spine: _spine,
+          spine: spineForPeriod,
           contractedHours: _hours,
           periodStart: periodStart,
           periodEnd: periodEnd,
@@ -148,7 +125,7 @@ class _CalculatorPageState extends State<CalculatorPage>
         if (earnings == null || earnings <= 0) continue;
         years.add(calculateFromHmrc(
           year: year,
-          spine: _spine,
+          spine: spineForPeriod,
           contractedHours: _hours,
           hmrcEarnings: earnings,
           periodStart: periodStart,
@@ -161,12 +138,11 @@ class _CalculatorPageState extends State<CalculatorPage>
     setState(() {
       _result = years.isEmpty ? null : CalcResult(years);
       _displayName = _nameController.text.trim();
-      // hide reveal button again if result disappears
-      if (_result == null) _revealed = false;
     });
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -216,7 +192,7 @@ class _CalculatorPageState extends State<CalculatorPage>
     );
   }
 
-  // ── Cards ──────────────────────────────────────────────────────────────────
+  // ── Cards ─────────────────────────────────────────────────────────────────
 
   Widget _nameCard() => _card(
         child: TextFormField(
@@ -252,10 +228,7 @@ class _CalculatorPageState extends State<CalculatorPage>
               ],
               selected: {_mode},
               onSelectionChanged: (s) {
-                setState(() {
-                  _mode = s.first;
-                  _revealed = false;
-                });
+                setState(() => _mode = s.first);
                 _recalculate();
               },
             ),
@@ -270,8 +243,6 @@ class _CalculatorPageState extends State<CalculatorPage>
         ),
       );
 
-  // Section 1 ─────────────────────────────────────────────────────────────────
-
   Widget _employmentCard() => _card(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,7 +250,6 @@ class _CalculatorPageState extends State<CalculatorPage>
             const Text('Current employment',
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
             const SizedBox(height: 16),
-
             Container(
               width: double.infinity,
               padding:
@@ -296,18 +266,15 @@ class _CalculatorPageState extends State<CalculatorPage>
                     child: Text(
                       'NHS Band 5 → Band 6 (Specialist Nurse)',
                       style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: _teal,
-                        fontSize: 13,
-                      ),
+                          fontWeight: FontWeight.w600,
+                          color: _teal,
+                          fontSize: 13),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-
-            // Years of experience
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -348,8 +315,6 @@ class _CalculatorPageState extends State<CalculatorPage>
               ],
             ),
             const SizedBox(height: 20),
-
-            // Contracted hours
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -396,8 +361,6 @@ class _CalculatorPageState extends State<CalculatorPage>
               ],
             ),
             const SizedBox(height: 20),
-
-            // Pension
             const Text('NHS Pension opted in?',
                 style: TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
             const SizedBox(height: 8),
@@ -429,18 +392,11 @@ class _CalculatorPageState extends State<CalculatorPage>
         color: _teal,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-          fontSize: 12,
-        ),
-      ),
+      child: Text(label,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
     );
   }
-
-  // Section 2 ─────────────────────────────────────────────────────────────────
 
   Widget _backPayStartCard() => _card(
         child: Column(
@@ -471,8 +427,6 @@ class _CalculatorPageState extends State<CalculatorPage>
         ),
       );
 
-  // Section 3 (HMRC mode only) ─────────────────────────────────────────────
-
   Widget _hmrcCard() {
     final relevantYears = PayYear.values.where((year) {
       final yearEnd = DateTime(year.endYear, 3, 31);
@@ -502,26 +456,22 @@ class _CalculatorPageState extends State<CalculatorPage>
     );
   }
 
-  Widget _hmrcRow(PayYear year) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextField(
-        controller: _hmrcControllers[year],
-        decoration: InputDecoration(
-          labelText: '${year.label} gross earnings',
-          border: const OutlineInputBorder(),
-          prefixText: '£ ',
-          hintText: '0.00',
+  Widget _hmrcRow(PayYear year) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: TextField(
+          controller: _hmrcControllers[year],
+          decoration: InputDecoration(
+            labelText: '${year.label} gross earnings',
+            border: const OutlineInputBorder(),
+            prefixText: '£ ',
+            hintText: '0.00',
+          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[\d,.]')),
+          ],
         ),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[\d,.]')),
-        ],
-      ),
-    );
-  }
-
-  // Final section ─────────────────────────────────────────────────────────────
+      );
 
   Widget _effectiveAfcDateCard() => _card(
         child: Column(
@@ -595,69 +545,17 @@ class _CalculatorPageState extends State<CalculatorPage>
     );
   }
 
-  // ── Results ────────────────────────────────────────────────────────────────
+  // ── Results section ───────────────────────────────────────────────────────
 
   Widget _resultsSection() {
-    if (_result == null) return _placeholderResults();
-    if (!_revealed) return _revealButton();
-
-    return FadeTransition(
-      opacity: _revealFade,
-      child: SlideTransition(
-        position: _revealSlide,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_displayName.isNotEmpty) ...[
-              _congratsCard(),
-              const SizedBox(height: 16),
-            ],
-            _resultsCard(),
-            const SizedBox(height: 16),
-            _disclaimer(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _revealButton() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _card(
-          child: Column(
-            children: [
-              const Icon(Icons.lock_outline, size: 36, color: _teal),
-              const SizedBox(height: 12),
-              const Text(
-                'Your estimate is ready',
-                style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    color: _teal),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Tap the button below when you\'re ready to see your back pay estimate.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        _RevealButton(onPressed: _reveal),
-      ],
-    );
-  }
-
-  Widget _placeholderResults() => _card(
+    if (_result == null) {
+      return _card(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Column(
             children: [
-              Icon(Icons.calculate_outlined, size: 40, color: Colors.grey[300]),
+              Icon(Icons.calculate_outlined,
+                  size: 40, color: Colors.grey[300]),
               const SizedBox(height: 12),
               Text(
                 _mode == CalcMode.hmrc
@@ -670,200 +568,25 @@ class _CalculatorPageState extends State<CalculatorPage>
           ),
         ),
       );
+    }
 
-  Widget _congratsCard() => Container(
-        decoration: BoxDecoration(
-          color: _teal,
-          borderRadius: BorderRadius.circular(12),
+    return Column(
+      children: [
+        Text(
+          'Your estimate is ready',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700]),
         ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Congratulations, $_displayName.',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Whether you have had your Agenda for Change accepted or not, we hope you feel recognised for the work that you do. We would be a worse society without you.',
-              style: TextStyle(color: Colors.white, fontSize: 15, height: 1.5),
-            ),
-          ],
-        ),
-      );
-
-  Widget _resultsCard() {
-    final r = _result!;
-    return _card(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Your estimated back pay',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-          const SizedBox(height: 4),
-          Text(
-            '${_dateFmt.format(_backPayStart)} → ${_dateFmt.format(_effectiveAfcDate)}',
-            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-          ),
-          const SizedBox(height: 16),
-
-          // Hero numbers with animated counter
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF7FFF9),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: _mintBadge),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Total gross back pay',
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-                const SizedBox(height: 4),
-                AnimatedBuilder(
-                  animation: _counterAnim,
-                  builder: (context, _) {
-                    final animating = _counterCtrl.status !=
-                        AnimationStatus.completed;
-                    final value = animating
-                        ? _counterTarget * _counterAnim.value
-                        : r.totalGross;
-                    return Text(
-                      _fmt.format(value),
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        color: _gold,
-                        letterSpacing: -0.5,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Text('Estimated take-home: ',
-                        style: TextStyle(fontSize: 14)),
-                    Text(
-                      _fmt.format(r.totalNet),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: _teal,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Per-year breakdown
-          ...r.years.map(_yearSection),
-          const Divider(thickness: 1.5),
-          const SizedBox(height: 8),
-          _row('Total gross back pay', r.totalGross, bold: true),
-          _row('  Income tax (est.)', -r.totalTax),
-          _row('  National Insurance (est.)', -r.totalNI),
-          if (_pension) _row('  Pension contribution (est.)', -r.totalPension),
-          const Divider(),
-          _row('Total estimated take-home', r.totalNet,
-              bold: true, color: _teal),
-        ],
-      ),
+        const SizedBox(height: 12),
+        _RevealButton(onPressed: _reveal),
+      ],
     );
   }
 
-  Widget _yearSection(YearResult y) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: _mintBadge,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              y.year.label,
-              style:
-                  const TextStyle(fontWeight: FontWeight.w700, color: _teal),
-            ),
-          ),
-          const SizedBox(height: 8),
-          _row(
-            _mode == CalcMode.payScale
-                ? 'Band 5 salary (annual)'
-                : 'Your HMRC earnings',
-            y.proRatedOldSalary,
-          ),
-          _row(
-            _mode == CalcMode.payScale
-                ? 'Band 6 salary (annual)'
-                : 'Expected Band 6 pay',
-            y.proRatedNewSalary,
-          ),
-          _row('Gross back pay', y.grossBackPay, bold: true),
-          _row('  Income tax (est.)', -y.incomeTax),
-          _row('  National Insurance (est.)', -y.nationalInsurance),
-          if (_pension) _row('  Pension contribution (est.)', -y.pension),
-          _row('Net back pay', y.net, bold: true, color: _teal),
-          const SizedBox(height: 16),
-        ],
-      );
-
-  Widget _row(String label, double value, {bool bold = false, Color? color}) {
-    final style = TextStyle(
-      fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
-      color: color,
-      fontSize: 14,
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: style),
-          Text(
-            value >= 0 ? _fmt.format(value) : '-${_fmt.format(-value)}',
-            style: style,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _disclaimer() => Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFEEEB),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFFF8575)),
-        ),
-        child: const Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(Icons.info_outline, size: 18, color: Color(0xFFFF8575)),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'These are estimates based on published NHS Scotland pay scales and standard Scottish tax rates. '
-                'Your actual back pay may differ. Please verify with your payroll department.',
-                style: TextStyle(fontSize: 13),
-              ),
-            ),
-          ],
-        ),
-      );
-
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   Widget _infoTip(String text) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -877,10 +600,8 @@ class _CalculatorPageState extends State<CalculatorPage>
             const Icon(Icons.info_outline, size: 15, color: _teal),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                text,
-                style: const TextStyle(fontSize: 12, color: _teal),
-              ),
+              child: Text(text,
+                  style: const TextStyle(fontSize: 12, color: _teal)),
             ),
           ],
         ),
@@ -906,15 +627,294 @@ class _CalculatorPageState extends State<CalculatorPage>
 
   Widget _card({required Widget child}) => Card(
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: child,
-        ),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Padding(padding: const EdgeInsets.all(20), child: child),
       );
 }
 
-// ── Animated Reveal Button ─────────────────────────────────────────────────
+// ── Full-screen result view ───────────────────────────────────────────────
+
+class _ResultScreen extends StatefulWidget {
+  const _ResultScreen({
+    required this.result,
+    required this.name,
+    required this.backPayStart,
+    required this.effectiveAfcDate,
+    required this.mode,
+    required this.pension,
+  });
+
+  final CalcResult result;
+  final String name;
+  final DateTime backPayStart;
+  final DateTime effectiveAfcDate;
+  final CalcMode mode;
+  final bool pension;
+
+  @override
+  State<_ResultScreen> createState() => _ResultScreenState();
+}
+
+class _ResultScreenState extends State<_ResultScreen>
+    with SingleTickerProviderStateMixin {
+  static const _teal = Color(0xFF005C69);
+  static const _gold = Color(0xFFFFC837);
+  static const _mintBadge = Color(0xFFCCEDE9);
+
+  late final AnimationController _ctrl;
+  late final Animation<double> _counterAnim;
+  late final Animation<double> _fadeAnim;
+
+  final _fmt =
+      NumberFormat.currency(locale: 'en_GB', symbol: '£', decimalDigits: 2);
+  final _dateFmt = DateFormat('d MMM yyyy');
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 2200));
+    _counterAnim = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+          parent: _ctrl,
+          curve: const Interval(0.0, 0.65, curve: Curves.easeOutExpo)),
+    );
+    _fadeAnim = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+          parent: _ctrl,
+          curve: const Interval(0.45, 1.0, curve: Curves.easeOut)),
+    );
+    Future.delayed(const Duration(milliseconds: 300),
+        () { if (mounted) _ctrl.forward(); });
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final r = widget.result;
+
+    return Scaffold(
+      backgroundColor: _teal,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('Your Back Pay Estimate',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+      ),
+      body: AnimatedBuilder(
+        animation: _ctrl,
+        builder: (context, _) {
+          final done = _ctrl.status == AnimationStatus.completed;
+          final net = done ? r.totalNet : r.totalNet * _counterAnim.value;
+          final fade = _fadeAnim.value;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 48),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Personalised greeting
+                if (widget.name.isNotEmpty) ...[
+                  Text(
+                    'Congratulations, ${widget.name}.',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'We hope you feel recognised for the work that you do. We would be a worse society without you.',
+                    style: TextStyle(
+                        color: Colors.white70, fontSize: 14, height: 1.5),
+                  ),
+                  const SizedBox(height: 28),
+                ] else
+                  const SizedBox(height: 8),
+
+                // Hero — take-home
+                const Text('Estimated take-home back pay',
+                    style: TextStyle(color: Colors.white70, fontSize: 14)),
+                const SizedBox(height: 6),
+                Text(
+                  _fmt.format(net),
+                  style: const TextStyle(
+                    color: _gold,
+                    fontSize: 52,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -1.5,
+                    height: 1.1,
+                  ),
+                ),
+
+                // Secondary — gross + period (fade in after counter)
+                const SizedBox(height: 6),
+                Opacity(
+                  opacity: fade,
+                  child: Text(
+                    'Gross back pay: ${_fmt.format(r.totalGross)}',
+                    style: const TextStyle(color: Colors.white54, fontSize: 14),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Opacity(
+                  opacity: fade,
+                  child: Text(
+                    '${_dateFmt.format(widget.backPayStart)} → ${_dateFmt.format(widget.effectiveAfcDate)}',
+                    style:
+                        const TextStyle(color: Colors.white38, fontSize: 13),
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                // Summary breakdown card
+                Opacity(opacity: fade, child: _breakdownCard(r)),
+
+                const SizedBox(height: 16),
+
+                // Per-year detail cards
+                Opacity(
+                  opacity: fade,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: r.years.map(_yearCard).toList(),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Disclaimer
+                Opacity(
+                  opacity: fade,
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0x1AFFFFFF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      'These are estimates based on published NHS Scotland pay scales and standard Scottish tax rates. '
+                      'Your actual back pay may differ — please verify with your payroll department.',
+                      style: TextStyle(
+                          color: Colors.white60, fontSize: 12, height: 1.5),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _breakdownCard(CalcResult r) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('How it breaks down',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+            const SizedBox(height: 16),
+            _row('Total gross back pay', r.totalGross),
+            _row('  Income tax (est.)', -r.totalTax),
+            _row('  National Insurance (est.)', -r.totalNI),
+            if (widget.pension)
+              _row('  Pension contribution (est.)', -r.totalPension),
+            const Divider(height: 24),
+            _row('Take-home estimate', r.totalNet, bold: true, color: _teal),
+          ],
+        ),
+      );
+
+  Widget _yearCard(YearResult y) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _mintBadge,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(y.year.label,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: _teal,
+                        fontSize: 13)),
+              ),
+              const SizedBox(height: 12),
+              _row(
+                widget.mode == CalcMode.payScale
+                    ? 'Band 5 salary (annual)'
+                    : 'Your HMRC earnings',
+                y.proRatedOldSalary,
+              ),
+              _row(
+                widget.mode == CalcMode.payScale
+                    ? 'Band 6 salary (annual)'
+                    : 'Expected Band 6 pay',
+                y.proRatedNewSalary,
+              ),
+              _row('Gross back pay', y.grossBackPay, bold: true),
+              _row('  Income tax (est.)', -y.incomeTax),
+              _row('  National Insurance (est.)', -y.nationalInsurance),
+              if (widget.pension)
+                _row('  Pension contribution (est.)', -y.pension),
+              const Divider(height: 20),
+              _row('Take-home', y.net, bold: true, color: _teal),
+            ],
+          ),
+        ),
+      );
+
+  Widget _row(String label, double value, {bool bold = false, Color? color}) {
+    final style = TextStyle(
+      fontWeight: bold ? FontWeight.w700 : FontWeight.normal,
+      color: color ?? Colors.black87,
+      fontSize: 14,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: style),
+          Text(
+            value >= 0 ? _fmt.format(value) : '-${_fmt.format(-value)}',
+            style: style,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Animated Reveal Button ────────────────────────────────────────────────
 
 class _RevealButton extends StatefulWidget {
   const _RevealButton({required this.onPressed});
@@ -936,9 +936,8 @@ class _RevealButtonState extends State<_RevealButton>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..repeat(reverse: true);
-    _scale = Tween<double>(begin: 1.0, end: 1.03).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
+    _scale = Tween<double>(begin: 1.0, end: 1.03)
+        .animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -958,6 +957,8 @@ class _RevealButtonState extends State<_RevealButton>
           icon: const Icon(Icons.auto_awesome, size: 20),
           label: const Text('Reveal my back pay estimate'),
           style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFFFFC837),
+            foregroundColor: Colors.black87,
             padding: const EdgeInsets.symmetric(vertical: 18),
             textStyle: const TextStyle(
               fontSize: 17,

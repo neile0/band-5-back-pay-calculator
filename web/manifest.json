@@ -1,11 +1,11 @@
 {
-    "name": "band_5_back_pay_calculator",
-    "short_name": "band_5_back_pay_calculator",
+    "name": "NHS Band 5 Back Pay Calculator",
+    "short_name": "Back Pay Calc",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#005C69",
+    "theme_color": "#005C69",
+    "description": "Estimate your NHS Scotland Band 5 AfC back pay under PCS(AFC)2024/3.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
