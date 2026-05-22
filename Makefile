@@ -1,4 +1,5 @@
-.PHONY: dev build up down logs analyze test
+.PHONY: dev build up down logs analyze test \
+        tf-init tf-import tf-plan tf-apply tf-destroy
 
 # Run locally with hot reload at http://localhost:8080
 dev:
@@ -22,3 +23,21 @@ analyze:
 
 test:
 	fvm flutter test
+
+# ── Terraform ────────────────────────────────────────────────────────────────
+
+tf-init:
+	cd terraform && terraform init
+
+# First-time only: imports existing GCP resources, then delete terraform/imports.tf
+tf-import:
+	cd terraform && terraform apply
+
+tf-plan:
+	cd terraform && terraform plan
+
+tf-apply:
+	cd terraform && terraform apply
+
+tf-destroy:
+	cd terraform && terraform destroy
