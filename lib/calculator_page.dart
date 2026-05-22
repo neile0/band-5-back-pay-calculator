@@ -386,7 +386,7 @@ class _CalculatorPageState extends State<CalculatorPage>
         controller: _nameController,
         decoration: const InputDecoration(
           labelText: 'Your first name',
-          hintText: 'e.g. Zoe',
+          hintText: 'e.g. Sarah',
           helperText: 'Optional — personalises your results',
           border: OutlineInputBorder(),
         ),
@@ -978,18 +978,8 @@ class _CalculatorPageState extends State<CalculatorPage>
               children: [
                 Text('Made by ',
                     style: TextStyle(fontSize: 13, color: _textSecondary)),
-                _link('Aidan Neil',
-                    'https://www.linkedin.com/in/aidan-neil/'),
-                Text(' · ',
-                    style: TextStyle(fontSize: 13, color: _textSecondary)),
                 _link('Kelvin Systems', 'https://kelvin.systems'),
               ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Well done Zoe and those at NSD on the recognition of your specialised work ❤️',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: _textSecondary),
             ),
           ],
         ),
